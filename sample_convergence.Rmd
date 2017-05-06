@@ -1,7 +1,14 @@
-# How sample mean and variance converge to population mean and 
-# variance respectively.
+---
+title: "Variability"
+author: "Rogelio Caballero"
+date: "May 5, 2017"
+output: html_document
+---
+When sampling a random variable one can take different values for the number of trials ```nosim``` (for "number of simulations") and the amount of values that one collects in each trial ```n```.
 
-# die roll, mu = 3.5, sd = 1.707...
+The following generates the distributions of the means of ```n``` uniformly distributed numbers while keeping the number of trials ```nosim``` constant.
+
+```{r}
 df <- data.frame(m = vector(), sd = vector(), n = vector())
 
 nosim <- 1000
@@ -16,13 +23,21 @@ for(n in c(5, 10, 50, 100)){
         df1 <- data.frame(m, sd, n1)
         df <- rbind(df, df1)
 }
+```
 
+The number of values over which the mean is taken in each trial has an effect on the spread of the distribution. The bigger ```n``` gets, the sharper the distribution.
 
-
+```{r}
 library(ggplot2)
 h <- ggplot(df, aes(df$m)) + geom_histogram(binwidth = 0.2) +
         facet_grid(n1 ~ ., labeller = label_both)
 
+h
+```
+
+However, if we fix ```n```, we see that variations in the number of simulations trivially only affect the height of the bars:
+
+```{r}
 df2 <- data.frame(m = vector(), sd = vector(), nosim = vector())
 
 n <- 10
@@ -42,3 +57,4 @@ h1 <- ggplot(df2, aes(df2$m)) + geom_histogram(binwidth = 0.2) +
         facet_grid(nosim1 ~ ., labeller = label_both)
 
 h1
+```
