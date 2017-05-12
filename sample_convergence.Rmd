@@ -4,9 +4,9 @@ author: "Rogelio Caballero"
 date: "May 5, 2017"
 output: html_document
 ---
-When sampling a random variable one can take different values for the number of trials ```nosim``` (for "number of simulations") and the amount of values that one collects in each trial ```n```.
+When sampling a random variable one can take different values for the number of trials ```nosim``` (for "number of simulations") and the size of the sample that one collects in each trial ```n```.
 
-The following generates the distributions of the means of ```n``` uniformly distributed numbers while keeping the number of trials ```nosim``` constant.
+The following generates the distribution of sample means of ```n``` uniformly distributed numbers while keeping the number of trials ```nosim``` constant.
 
 ```{r}
 df <- data.frame(m = vector(), sd = vector(), n = vector())
@@ -35,7 +35,9 @@ h <- ggplot(df, aes(df$m)) + geom_histogram(binwidth = 0.2) +
 h
 ```
 
-However, if we fix ```n```, we see that variations in the number of simulations trivially only affect the height of the bars:
+This is consistent with the law of large numbers.
+
+On the other hand, if we fix ```n```, we see that variations in the number of simulations only affect the height of the bars (trivially):
 
 ```{r}
 df2 <- data.frame(m = vector(), sd = vector(), nosim = vector())
