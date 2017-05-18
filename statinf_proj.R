@@ -42,3 +42,17 @@ h <- ggplot(df, aes(x = value)) +
         geom_histogram(data = subset(df, df$variable == "mean"), binwidth = 0.1, fill = "red") +
         geom_histogram(data = subset(df, df$variable == "exponential"), binwidth = 0.1, fill = "blue") 
 h
+
+
+#################################################################
+#################################################################
+#################################################################
+
+# Tooth Growth
+
+data("ToothGrowth")
+
+c <- ggplot(ToothGrowth, aes(x = as.factor(ToothGrowth$supp), y = ToothGrowth$len)) + 
+        geom_boxplot(aes(fill = as.factor(ToothGrowth$supp))) + 
+        facet_grid(.~dose)
+c
