@@ -7,7 +7,6 @@ lambda <- 0.2
 n <- 40
 
 m <- matrix(rexp(nosim*n, rate = lambda), nosim)
-
 mn <- apply(m, 1, mean)
 
 # equal to the theoretical standard deviation of the population
@@ -52,7 +51,26 @@ h
 
 data("ToothGrowth")
 
-c <- ggplot(ToothGrowth, aes(x = as.factor(ToothGrowth$supp), y = ToothGrowth$len)) + 
-        geom_boxplot(aes(fill = as.factor(ToothGrowth$supp))) + 
-        facet_grid(.~dose)
-c
+qplot(supp,len,data=ToothGrowth, facets=~dose, 
+      main="Tooth Growth by delivery method and dose (mg/day)",
+      xlab="Delivery Method", ylab="Tooth length")+
+        facet_grid(~dose, labeller = "label_value")+ 
+        geom_boxplot(aes(fill = supp)) + 
+        scale_fill_discrete(name = "Delivery Method",
+                            breaks = c("OJ","VC"),
+                            labels = c("Orange Juice", "Vitamine C"))
+
+a <- subset(ToothGrowth, supp == "VC" & dose == 2)$len
+b <- subset(ToothGrowth, supp == "OJ" & dose == 2)$len
+
+t.test(subset(ToothGrowth, supp == "OJ" & dose == 0.5)$len, 
+       subset(ToothGrowth, supp == "VC" & dose == 0.5)$len)
+
+t.test(subset(ToothGrowth, supp == "OJ" & dose == 1)$len, 
+       subset(ToothGrowth, supp == "VC" & dose == 1)$len)
+
+t.test(subset(ToothGrowth, supp == "OJ" & dose == 2)$len, 
+       subset(ToothGrowth, supp == "VC" & dose == 2)$len)
+
+power.t.test(n = 10, delta = mean(b) - mean(a),
+             sd = sqrt((var(a)+var(b))/2), alternative = "one.sided", type = "two.sample")

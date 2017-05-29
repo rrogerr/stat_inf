@@ -1,0 +1,106 @@
+---
+title: 'Peer-graded Assignment Part 2: Inferential Data Analysis'
+author: "Rogelio Caballero"
+date: "May 27, 2017"
+output:
+  pdf_document: default
+  html_document: default
+abstract: What follows is an exploratory analysis of the ToothGrowth dataset and some
+  statistical tests performed on it as part of the Statistical Inference Course of
+  Johns Hopkins University at Coursera.
+---
+
+## Exploring *ToothGrowth*
+
+```ToothGrowth``` contains information about the effects of vitamine C on the growth of odontoblasts of 60 guinea pigs. Let's load it:
+```{r}
+data("ToothGrowth")
+head(ToothGrowth)
+nrow(ToothGrowth)
+```
+As we can see is a dataframe with 60 observations of 3 variables. ```len``` is the length of the odontoblasts (I haven't been able to find the units), ```supp``` is the type of supplement though which the vitamine C is given to the subjects and ```dose``` is given in mg/day. Let's take a look at the supplements and the doses:
+
+```{r}
+levels(ToothGrowth$supp)
+```
+
+"OJ" stands for "orange juice" while "VC" stands for "vitamine C", these are the delivery methods though which the doses were given to the pigs. We can also check all the values of ```dose```:
+
+```{r}
+levels(as.factor(ToothGrowth$dose))
+```
+
+Now let's see some boxplots to get an idea about the behavior of ```len``` varies with the other parameters. As we can see for doses of $0.5mg/day$ and $1mg/day$ the ```"OJ"``` delivery method *seems* to produce greater tooth growth than ```"VC"```. For the $2.0mg/day$ dose there seems to be no significant difference. We will test that hypothesis in the second part of this exercise:
+
+```{r echo=FALSE}
+library(ggplot2)
+
+qplot(supp,len,data=ToothGrowth, facets=~dose, 
+      main="Tooth Growth by delivery method and dose (mg/day)",
+      xlab="Delivery Method", ylab="Tooth length")+
+        facet_grid(~dose, labeller = "label_value")+ 
+        geom_boxplot(aes(fill = supp)) + 
+        scale_fill_discrete(name = "Delivery Method",
+                            breaks = c("OJ","VC"),
+                            labels = c("Orange Juice", "Vitamine C"))
+```
+
+Observe that boxes show the median and quantiles of the data while in hypothesis testing we are more interested in means and standard deviations. Let's take a look at those:
+
+```{r, echo = FALSE, message=FALSE, warning= FALSE}
+library(dplyr)
+library(xtable)
+options(xtable.comment = FALSE)
+```
+
+```{r}
+df <- aggregate(len~supp + dose, data = ToothGrowth, 
+          FUN = function(x)c(mn = mean(x), sd = sd(x)))
+```
+
+```{r showtable, results='asis', message=FALSE}
+xt <- xtable(do.call(data.frame, c(df, check.names = FALSE)))
+print(xt, type = "latex")
+```
+As we can see the only dose for which the results of both delivery methods seem to be equal is $2mg/day$: each mean lies less than one standard deviation of the other.
+
+## Hypothesis testing
+
+We are going to run some t-tests to see whether the difference in tooth growth for different delivery methods is significant.
+
+```{r}
+a <- subset(ToothGrowth, supp == "OJ" & dose == 0.5)$len
+b <- subset(ToothGrowth, supp == "VC" & dose == 0.5)$len
+t.test(a,b)$conf.int
+```
+
+As we can see 0 lies outside the 95% confidence interval which suggests that we can reject the null hypothesis (mean growth is the same for both supplements). Let's see the confidence intervals of the other doses:
+```{r}
+t.test(subset(ToothGrowth, supp == "OJ" & dose == 1)$len, 
+       subset(ToothGrowth, supp == "VC" & dose == 1)$len)$conf.int
+
+a1 <- subset(ToothGrowth, supp == "OJ" & dose == 2)$len
+b1 <- subset(ToothGrowth, supp == "VC" & dose == 2)$len
+t.test(a1, b1)$conf.int
+```
+
+We can reject the null hypothesis in favor of greater tooth growth for orange juice for doses of $1mg/day$. In the case of $2mg/day$, as we suspected, 0 lies inside the 95% confidence interval. As a consequence we fail to reject the null hypothesis.
+
+Let's compare the *power* of our tests for the $0.5mg/day$ and $2.0mg/day$ doses:
+
+```{r}
+power.t.test(n = 10, delta = mean(a) - mean(b),
+             sd = sqrt((var(a)+var(b))/2), alternative = "one.sided", type = "two.sample")$power
+power.t.test(n = 10, delta = mean(a1) - mean(b1),
+             sd = sqrt((var(a1)+var(b1))/2), alternative = "one.sided", type = "two.sample")$power
+```
+As we can see, in the case of $2mg/day$ power is low due to the fact that the difference between the means is small (small effect size).
+
+## Conclusions
+
+For $0.5mg/day$ and $1.0mg/day$ the data supports the hypothesis that orange juice produces greater tooth growth as a supplement. In the case of $2.0mg/day$ dose, the data supports the hypothesis of equal mean tooth growth for both supplements. The low power of the test for the latter dose is consistent with the hypothesis testing.
+
+An important assumption that we've made is that data is symmetric around the mean in order to apply Welch t-tests. This is not completely accurate since tooth growth cannot be negative, while a variable that strictly follows a t-distribution takes negative values to maintain symmetry.
+
+
+
